@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Career Agent</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+}
+
+.card {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 12px;
+    width: 450px;
+}
+
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+button {
+    background: #22c55e;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.box {
+    background: #334155;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>🚀 AI Career Agent</h2>
+
+<input type="text" id="skills" placeholder="Enter skills">
+
+<input type="file" id="resume">
+
+<button onclick="analyzeAll()">Analyze</button>
+
+<div id="result"></div>
+</div>
+
+<script>
+async function analyzeAll() {
+
+    let skills = document.getElementById("skills").value.split(",");
+    let fileInput = document.getElementById("resume");
+
+    let extractedSkills = [];
+
+    if (fileInput.files.length > 0) {
+        let formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        let res = await fetch("http://localhost:8080/api/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        let data = await res.json();
+        extractedSkills = data.detectedSkills || [];
+    }
+
+    let finalSkills = [...skills, ...extractedSkills];
+
+    let res2 = await fetch("http://localhost:8080/api/analyze", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(finalSkills)
+    });
+
+    let r = await res2.json();
+
+    document.getElementById("result").innerHTML =
+        `<div class="box"><b>Roles:</b> ${r.roles.join(", ") || "N/A"}</div>
+         <div class="box"><b>Match:</b> ${r.match || 0}%</div>
+         <div class="box"><b>Skills:</b> ${r.detectedSkills.join(", ") || "N/A"}</div>
+         <div class="box"><b>Suggestions:</b><br>${r.suggestions.join("<br>") || "N/A"}</div>
+         <div class="box"><b>Advice:</b> ${r.advice || "N/A"}</div>
+         <div class="box"><b>Jobs:</b><br>${r.jobs.join("<br>") || "N/A"}</div>`;
+}
+</script>
+
+</body>
+</html>
