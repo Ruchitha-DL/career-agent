@@ -47,7 +47,7 @@ button {
 <div class="card">
 <h2>🚀 AI Career Agent</h2>
 
-<input type="text" id="skills" placeholder="Enter skills">
+<input type="text" id="skills" placeholder="Enter skills (e.g. java, sql)">
 
 <input type="file" id="resume">
 
@@ -59,16 +59,18 @@ button {
 <script>
 async function analyzeAll() {
 
-    let skills = document.getElementById("skills").value.split(",");
-    let fileInput = document.getElementById("resume");
+    let skillsInput = document.getElementById("skills").value;
+    let skills = skillsInput ? skillsInput.split(",") : [];
 
+    let fileInput = document.getElementById("resume");
     let extractedSkills = [];
 
+    // 🔹 Upload resume if present
     if (fileInput.files.length > 0) {
         let formData = new FormData();
         formData.append("file", fileInput.files[0]);
 
-        let res = await fetch("http://localhost:8080/api/upload", {
+        let res = await fetch("https://career-agent-djxq.onrender.com/api/upload", {
             method: "POST",
             body: formData
         });
@@ -77,9 +79,11 @@ async function analyzeAll() {
         extractedSkills = data.detectedSkills || [];
     }
 
+    // 🔹 Merge skills
     let finalSkills = [...skills, ...extractedSkills];
 
-    let res2 = await fetch("http://localhost:8080/api/analyze", {
+    // 🔹 Analyze
+    let res2 = await fetch("https://career-agent-djxq.onrender.com/api/analyze", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(finalSkills)
